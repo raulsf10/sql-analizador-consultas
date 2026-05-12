@@ -1,0 +1,44 @@
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Variables de entorno (contiene secretos)
+.env
+
+# Logs
+logs/
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+
+# Archivos comprimidos
+*.zip
+*.tar.gz
+*.rar
