@@ -106,7 +106,7 @@ C:\Tools\nssm\nssm.exe install SqlRiskEngine `
     "-m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
 
 C:\Tools\nssm\nssm.exe set SqlRiskEngine AppDirectory "C:\Apps\sql-analizador-consultas"
-C:\Tools\nssm\nssm.exe set SqlRiskEngine DisplayName "SQL Risk Engine"
+C:\Tools\nssm\nssm.exe set SqlRiskEngine DisplayName "SQL Analizador Consultas"
 C:\Tools\nssm\nssm.exe set SqlRiskEngine Description "Microservicio de análisis de riesgo SQL"
 C:\Tools\nssm\nssm.exe set SqlRiskEngine Start SERVICE_AUTO_START
 C:\Tools\nssm\nssm.exe set SqlRiskEngine AppStdout "C:\Apps\sql-analizador-consultas\logs\stdout.log"
@@ -138,14 +138,14 @@ Get-Service SqlRiskEngine
 ```powershell
 # Abrir puerto 8000 (ejecutar como Administrador)
 New-NetFirewallRule `
-    -DisplayName "SQL Risk Engine API" `
+    -DisplayName "SQL Analizador Consultas API" `
     -Direction Inbound `
     -Protocol TCP `
     -LocalPort 8000 `
     -Action Allow
 
 # Verificar regla
-Get-NetFirewallRule -DisplayName "SQL Risk Engine API"
+Get-NetFirewallRule -DisplayName "SQL Analizador Consultas API"
 ```
 
 ---

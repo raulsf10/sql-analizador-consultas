@@ -48,7 +48,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(
-        title="SQL Risk Engine",
+        title="SQL Analizador consultas",
         version=settings.app_version,
         docs_url="/docs",
         redoc_url="/redoc",

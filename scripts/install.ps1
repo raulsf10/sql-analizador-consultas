@@ -6,7 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 
-Write-Host "=== SQL Risk Engine - Instalacion ===" -ForegroundColor Cyan
+Write-Host "=== SQL Analizador Consultas - Instalacion ===" -ForegroundColor Cyan
 Write-Host "Directorio del proyecto: $ProjectRoot"
 
 Set-Location $ProjectRoot

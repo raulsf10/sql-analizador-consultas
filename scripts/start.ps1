@@ -28,7 +28,7 @@ if ($Reload) {
     Write-Host "Modo desarrollo (--reload) activado" -ForegroundColor Yellow
 }
 
-Write-Host "=== Iniciando SQL Risk Engine ===" -ForegroundColor Cyan
+Write-Host "=== Iniciando SQL Analizador Consultas ===" -ForegroundColor Cyan
 Write-Host "URL: http://${BindHost}:${Port}"
 Write-Host "Swagger: http://${BindHost}:${Port}/docs"
 
