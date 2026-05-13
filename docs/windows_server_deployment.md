@@ -25,8 +25,8 @@ python --version
 
 ```powershell
 # Copiar proyecto al servidor
-xcopy /E /I sql-risk-engine C:\Apps\sql-risk-engine
-cd C:\Apps\sql-risk-engine
+xcopy /E /I sql-analizador-consultas C:\Apps\sql-analizador-consultas
+cd C:\Apps\sql-analizador-consultas
 ```
 
 ---
@@ -34,7 +34,7 @@ cd C:\Apps\sql-risk-engine
 ## 3. Crear Entorno Virtual e Instalar Dependencias
 
 ```powershell
-cd C:\Apps\sql-risk-engine
+cd C:\Apps\sql-analizador-consultas
 
 # Crear virtualenv
 python -m venv .venv
@@ -66,7 +66,7 @@ DEBUG=false
 HOST=0.0.0.0
 PORT=8000
 LOG_LEVEL=INFO
-LOG_FILE=C:\Apps\sql-risk-engine\logs\sql-risk-engine.log
+LOG_FILE=C:\Apps\sql-analizador-consultas\logs\sql-analizador-consultas.log
 APPROVAL_THRESHOLD=60
 ```
 
@@ -75,7 +75,7 @@ APPROVAL_THRESHOLD=60
 ## 5. Ejecutar Manualmente (Prueba)
 
 ```powershell
-cd C:\Apps\sql-risk-engine
+cd C:\Apps\sql-analizador-consultas
 .venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
@@ -96,21 +96,21 @@ Descargar desde https://nssm.cc/download y colocar `nssm.exe` en `C:\Tools\nssm\
 C:\Tools\nssm\nssm.exe install SqlRiskEngine
 
 # En la UI de NSSM configurar:
-# Application Path: C:\Apps\sql-risk-engine\.venv\Scripts\python.exe
-# Startup directory: C:\Apps\sql-risk-engine
+# Application Path: C:\Apps\sql-analizador-consultas\.venv\Scripts\python.exe
+# Startup directory: C:\Apps\sql-analizador-consultas
 # Arguments: -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2
 
 # O via línea de comandos:
 C:\Tools\nssm\nssm.exe install SqlRiskEngine `
-    "C:\Apps\sql-risk-engine\.venv\Scripts\python.exe" `
+    "C:\Apps\sql-analizador-consultas\.venv\Scripts\python.exe" `
     "-m uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 2"
 
-C:\Tools\nssm\nssm.exe set SqlRiskEngine AppDirectory "C:\Apps\sql-risk-engine"
+C:\Tools\nssm\nssm.exe set SqlRiskEngine AppDirectory "C:\Apps\sql-analizador-consultas"
 C:\Tools\nssm\nssm.exe set SqlRiskEngine DisplayName "SQL Risk Engine"
 C:\Tools\nssm\nssm.exe set SqlRiskEngine Description "Microservicio de análisis de riesgo SQL"
 C:\Tools\nssm\nssm.exe set SqlRiskEngine Start SERVICE_AUTO_START
-C:\Tools\nssm\nssm.exe set SqlRiskEngine AppStdout "C:\Apps\sql-risk-engine\logs\stdout.log"
-C:\Tools\nssm\nssm.exe set SqlRiskEngine AppStderr "C:\Apps\sql-risk-engine\logs\stderr.log"
+C:\Tools\nssm\nssm.exe set SqlRiskEngine AppStdout "C:\Apps\sql-analizador-consultas\logs\stdout.log"
+C:\Tools\nssm\nssm.exe set SqlRiskEngine AppStderr "C:\Apps\sql-analizador-consultas\logs\stderr.log"
 ```
 
 ### 6.3 Iniciar / Detener el Servicio
@@ -190,16 +190,16 @@ Crear `C:\inetpub\wwwroot\sqlriskengine\web.config`:
 
 ```powershell
 # Ver logs en tiempo real
-Get-Content "C:\Apps\sql-risk-engine\logs\sql-risk-engine.log" -Wait -Tail 50
+Get-Content "C:\Apps\sql-analizador-consultas\logs\sql-analizador-consultas.log" -Wait -Tail 50
 
 # Ver últimas 100 líneas
-Get-Content "C:\Apps\sql-risk-engine\logs\sql-risk-engine.log" -Tail 100
+Get-Content "C:\Apps\sql-analizador-consultas\logs\sql-analizador-consultas.log" -Tail 100
 
 # Buscar errores
-Select-String -Path "C:\Apps\sql-risk-engine\logs\*.log" -Pattern '"level":"ERROR"'
+Select-String -Path "C:\Apps\sql-analizador-consultas\logs\*.log" -Pattern '"level":"ERROR"'
 
 # Ver logs del servicio NSSM
-Get-Content "C:\Apps\sql-risk-engine\logs\stderr.log" -Tail 50
+Get-Content "C:\Apps\sql-analizador-consultas\logs\stderr.log" -Tail 50
 ```
 
 ---
@@ -211,13 +211,13 @@ Get-Content "C:\Apps\sql-risk-engine\logs\stderr.log" -Tail 50
 Stop-Service SqlRiskEngine
 
 # 2. Hacer backup
-Copy-Item -Recurse C:\Apps\sql-risk-engine C:\Backup\sql-risk-engine-$(Get-Date -Format 'yyyyMMdd')
+Copy-Item -Recurse C:\Apps\sql-analizador-consultas C:\Backup\sql-analizador-consultas-$(Get-Date -Format 'yyyyMMdd')
 
 # 3. Copiar nuevos archivos (mantener .env y logs)
-xcopy /E /I /Y nueva-version\* C:\Apps\sql-risk-engine\ /EXCLUDE:exclude.txt
+xcopy /E /I /Y nueva-version\* C:\Apps\sql-analizador-consultas\ /EXCLUDE:exclude.txt
 
 # 4. Actualizar dependencias
-cd C:\Apps\sql-risk-engine
+cd C:\Apps\sql-analizador-consultas
 .venv\Scripts\pip.exe install -r requirements.txt --upgrade
 
 # 5. Reiniciar servicio

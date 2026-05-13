@@ -1,4 +1,4 @@
-# SQL Risk Engine
+# SQL Analizador de Consultas
 
 API para análisis de riesgo de scripts SQL. Recibe un script y retorna un score de criticidad con los hallazgos detectados.
 
@@ -68,5 +68,5 @@ Dialectos soportados: `oracle`, `tsql`, `postgres`, `mysql`
 | APP_ENV            | production               |
 | PORT               | 8000                     |
 | LOG_LEVEL          | INFO                     |
-| LOG_FILE           | logs/sql-risk-engine.log |
+| LOG_FILE           | logs/sql-analizador-consultas.log |
 | APPROVAL_THRESHOLD | 60                       |
