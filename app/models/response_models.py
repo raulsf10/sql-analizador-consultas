@@ -46,3 +46,25 @@ class AnalyzeResponse(BaseModel):
     estadisticas: Statistics
     dialecto: str
     tiempoEjecucionMs: float
+
+
+class ConsultaXmlResult(BaseModel):
+    nombre: str = Field(..., description="Nombre de la transformación en el XML")
+    dialecto: str
+    puntuacion: int = Field(..., ge=0, le=100)
+    criticidad: Criticality
+    requiereAprobacion: bool
+    problemas: List[Issue]
+    estadisticas: Statistics
+    tiempoEjecucionMs: float
+
+
+class XmlAnalyzeResponse(BaseModel):
+    exitoso: bool = Field(default=True)
+    totalConsultas: int
+    criticidadGeneral: Criticality = Field(..., description="Criticidad más alta entre todas las consultas")
+    puntuacionMaxima: int = Field(..., ge=0, le=100, description="Puntuación más alta entre todas las consultas")
+    consultasCriticas: int = Field(..., description="Número de consultas que requieren aprobación")
+    requiereAprobacion: bool = Field(..., description="True si al menos una consulta requiere aprobación")
+    consultas: List[ConsultaXmlResult]
+    tiempoTotalMs: float
