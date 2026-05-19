@@ -144,15 +144,15 @@ CRITICAL_TABLES: Set[str] = {
     "WF_PPTO_2023",
 }
 
-_WRITE_STATEMENT_TYPES = (
-    exp.AlterTable,
+_WRITE_STATEMENT_TYPES = tuple(filter(None, [
+    getattr(exp, "AlterTable", None),
     exp.Delete,
     exp.Drop,
     exp.Insert,
     exp.Merge,
     exp.TruncateTable,
     exp.Update,
-)
+]))
 
 
 def _write_target_tables(stmt: sqlglot.Expression) -> list[exp.Table]:
