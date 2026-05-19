@@ -26,6 +26,7 @@ from app.rules.definitions.pivot_unpivot import PivotUnpivotRule
 from app.rules.definitions.subquery_instead_of_join import SubqueryInsteadOfJoinRule
 from app.rules.definitions.critical_table import CriticalTableRule
 from app.rules.definitions.tautological_where import TautologicalWhereRule
+from app.rules.definitions.no_bind_variable import NoBindVariableRule
 
 
 def build_rule_manager() -> RuleManager:
@@ -58,6 +59,7 @@ def build_rule_manager() -> RuleManager:
         SubqueryInsteadOfJoinRule(),
         CriticalTableRule(),
         TautologicalWhereRule(),
+        NoBindVariableRule(),
     ]
     for rule in rules:
         manager.register(rule)

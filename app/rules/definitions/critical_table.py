@@ -145,19 +145,35 @@ CRITICAL_TABLES: Set[str] = {
 }
 
 _WRITE_STATEMENT_TYPES = (
+    exp.AlterTable,
     exp.Delete,
-    exp.Update,
-    exp.Insert,
-    exp.TruncateTable,
     exp.Drop,
+    exp.Insert,
     exp.Merge,
+    exp.TruncateTable,
+    exp.Update,
 )
+
+
+def _write_target_tables(stmt: sqlglot.Expression) -> list[exp.Table]:
+    """Return only the tables being written/modified — ignores source/join tables."""
+    if isinstance(stmt, exp.TruncateTable):
+        # TRUNCATE has no subqueries; all referenced tables are targets
+        return list(stmt.find_all(exp.Table))
+    target = getattr(stmt, "this", None)
+    if target is None:
+        return []
+    if isinstance(target, exp.Table):
+        return [target]
+    # INSERT INTO schema.table(cols) → stmt.this is exp.Schema wrapping exp.Table
+    found = target.find(exp.Table)
+    return [found] if found else []
 
 
 class CriticalTableRule(BaseRule):
     code = "TABLA_CRITICA"
-    name = "Operación sobre tabla crítica"
-    description = "Detecta operaciones de escritura (DML/DDL) sobre tablas catalogadas como críticas para la organización."
+    name = "Operación de escritura sobre tabla crítica"
+    description = "Detecta operaciones de escritura (INSERT, UPDATE, DELETE, TRUNCATE, DROP, ALTER, MERGE) sobre tablas catalogadas como críticas. Las lecturas (SELECT) no se penalizan."
     severity = Severity.CRITICA
     score = 80
 
@@ -167,21 +183,29 @@ class CriticalTableRule(BaseRule):
             if not isinstance(stmt, _WRITE_STATEMENT_TYPES):
                 continue
             seen = set()
-            for table in stmt.find_all(exp.Table):
-                key = self._table_key(table)
-                if key in CRITICAL_TABLES and key not in seen:
-                    seen.add(key)
+            for table in _write_target_tables(stmt):
+                display = self._display_key(table)
+                if self._is_critical(table) and display not in seen:
+                    seen.add(display)
                     issues.append(self._issue(
-                        message=f"Operación de escritura sobre tabla crítica: {key}",
+                        message=f"Operación de escritura sobre tabla crítica: {display}",
                         recommendation=(
-                            f"La tabla '{key}' está catalogada como crítica. "
+                            f"La tabla '{display}' está catalogada como crítica. "
                             "Verifique que el script cuenta con aprobación explícita antes de ejecutarse en producción."
                         ),
                     ))
         return issues
 
     @staticmethod
-    def _table_key(table: exp.Table) -> str:
+    def _display_key(table: exp.Table) -> str:
         name = table.name.upper()
         db = table.db.upper() if table.db else ""
         return f"{db}.{name}" if db else name
+
+    @staticmethod
+    def _is_critical(table: exp.Table) -> bool:
+        name = table.name.upper()
+        db = table.db.upper() if table.db else ""
+        full_key = f"{db}.{name}" if db else name
+        # Matches both "DWH_SUKA.DIM_HK_INDICADORES" and "DIM_HK_INDICADORES"
+        return full_key in CRITICAL_TABLES or name in CRITICAL_TABLES
