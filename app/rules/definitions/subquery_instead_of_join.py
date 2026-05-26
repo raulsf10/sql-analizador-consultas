@@ -15,6 +15,7 @@ class SubqueryInsteadOfJoinRule(BaseRule):
     score = 30
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -26,5 +27,6 @@ class SubqueryInsteadOfJoinRule(BaseRule):
                     issues.append(self._issue(
                         message=f"{subq_count} subqueries en cláusula FROM: patrón ineficiente versus JOINs ANSI.",
                         recommendation="Reemplazar subqueries derivadas en FROM con JOINs explícitos o CTEs para mejor legibilidad y rendimiento.",
+                        node=select,
                     ))
         return issues

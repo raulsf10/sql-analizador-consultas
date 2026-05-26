@@ -13,6 +13,7 @@ class IncorrectOrderByRule(BaseRule):
     score = 15
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for order in stmt.find_all(exp.Order):
@@ -21,5 +22,6 @@ class IncorrectOrderByRule(BaseRule):
                         issues.append(self._issue(
                             message=f"ORDER BY posición ordinal ({ordered.this.this}): frágil ante cambios de columnas en SELECT.",
                             recommendation="Usar nombres de columna explícitos en ORDER BY en lugar de posiciones numéricas.",
+                            node=order,
                         ))
         return issues

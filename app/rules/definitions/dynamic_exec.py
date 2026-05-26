@@ -15,6 +15,7 @@ class DynamicExecRule(BaseRule):
     _EXEC_KEYWORDS = {"exec", "execute", "sp_executesql"}
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         lower = raw_script.lower()
         for kw in self._EXEC_KEYWORDS:
@@ -26,6 +27,7 @@ class DynamicExecRule(BaseRule):
                     issues.append(self._issue(
                         message=f"EXEC dinámico con concatenación detectado: alto riesgo de SQL Injection.",
                         recommendation="Usar sp_executesql con parámetros tipados en lugar de concatenación de strings.",
+                        line=self._keyword_line(raw_script, kw),
                     ))
                     break
         # Also check via AST for Anonymous EXEC calls
@@ -35,6 +37,7 @@ class DynamicExecRule(BaseRule):
                     issues.append(self._issue(
                         message="Llamada a EXEC/EXECUTE detectada via AST.",
                         recommendation="Parametrizar las consultas dinámicas usando sp_executesql con @params.",
+                        node=anon,
                     ))
                     break
         return issues

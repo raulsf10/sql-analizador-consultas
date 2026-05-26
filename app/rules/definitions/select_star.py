@@ -13,6 +13,7 @@ class SelectStarRule(BaseRule):
     score = 20
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -21,6 +22,7 @@ class SelectStarRule(BaseRule):
                         issues.append(self._issue(
                             message="Uso de SELECT *: trae todas las columnas incluyendo innecesarias.",
                             recommendation="Especificar explícitamente las columnas requeridas. Ejemplo: SELECT id, nombre, fecha FROM tabla",
+                            node=select,
                         ))
                         break
         return issues

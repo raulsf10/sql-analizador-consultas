@@ -21,6 +21,7 @@ class DateAsTextRule(BaseRule):
     score = 30
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for cmp in stmt.find_all((exp.EQ, exp.GT, exp.LT, exp.GTE, exp.LTE)):
@@ -38,5 +39,6 @@ class DateAsTextRule(BaseRule):
                             issues.append(self._issue(
                                 message=f"Comparación de fecha como texto '{val}' sobre columna '{other.name}': puede causar conversión implícita.",
                                 recommendation="Usar funciones de fecha explícitas: TO_DATE('...', 'YYYY-MM-DD') en Oracle, CAST('...' AS DATE) en SQL Server.",
+                                node=cmp,
                             ))
         return issues

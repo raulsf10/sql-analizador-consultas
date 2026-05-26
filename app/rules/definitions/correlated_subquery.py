@@ -13,6 +13,7 @@ class CorrelatedSubqueryRule(BaseRule):
     score = 50
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -44,6 +45,7 @@ class CorrelatedSubqueryRule(BaseRule):
                             issues.append(self._issue(
                                 message="Subconsulta correlacionada detectada en WHERE: se ejecuta N veces (una por fila).",
                                 recommendation="Reemplazar con JOIN o CTE para mejorar rendimiento.",
+                                node=subq,
                             ))
                             break
         return issues

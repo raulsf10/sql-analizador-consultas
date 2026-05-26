@@ -13,6 +13,7 @@ class UpdateWithoutWhereRule(BaseRule):
     score = 90
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for update in stmt.find_all(exp.Update):
@@ -20,5 +21,6 @@ class UpdateWithoutWhereRule(BaseRule):
                     issues.append(self._issue(
                         message="UPDATE sin cláusula WHERE: modificará TODOS los registros de la tabla.",
                         recommendation="Agregar cláusula WHERE. Ejemplo: UPDATE tabla SET col = val WHERE id = :id",
+                        node=update,
                     ))
         return issues

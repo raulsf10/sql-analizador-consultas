@@ -16,6 +16,7 @@ class TypeMismatchWhereRule(BaseRule):
     score = 25
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for where in stmt.find_all(exp.Where):
@@ -33,5 +34,6 @@ class TypeMismatchWhereRule(BaseRule):
                                 issues.append(self._issue(
                                     message=f"Posible comparación de tipo incorrecto: columna '{col.name}' (numérica) comparada con literal texto '{lit.this}'.",
                                     recommendation="Verificar tipos de datos y usar casteo explícito: CAST(col AS VARCHAR) = '...' o col = CAST('...' AS INT).",
+                                    node=cmp,
                                 ))
         return issues

@@ -13,6 +13,7 @@ class DistinctOnJoinRule(BaseRule):
     score = 25
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -22,5 +23,6 @@ class DistinctOnJoinRule(BaseRule):
                     issues.append(self._issue(
                         message="DISTINCT sobre consulta con JOIN: posible señal de cardinalidad incorrecta en el JOIN.",
                         recommendation="Revisar condiciones del JOIN para eliminar duplicados en origen en vez de usar DISTINCT.",
+                        node=select,
                     ))
         return issues

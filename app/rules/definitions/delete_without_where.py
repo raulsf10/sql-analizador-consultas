@@ -13,6 +13,7 @@ class DeleteWithoutWhereRule(BaseRule):
     score = 100
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for delete in stmt.find_all(exp.Delete):
@@ -20,5 +21,6 @@ class DeleteWithoutWhereRule(BaseRule):
                     issues.append(self._issue(
                         message="DELETE sin cláusula WHERE: eliminará TODOS los registros de la tabla.",
                         recommendation="Agregar cláusula WHERE. Ejemplo: DELETE FROM tabla WHERE id = :id",
+                        node=delete,
                     ))
         return issues

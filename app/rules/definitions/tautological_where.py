@@ -40,6 +40,7 @@ class TautologicalWhereRule(BaseRule):
     score = 100
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             if isinstance(stmt, exp.Delete):
@@ -49,7 +50,7 @@ class TautologicalWhereRule(BaseRule):
                         codigo=self.code,
                         severidad=Severity.CRITICA,
                         mensaje="DELETE con WHERE siempre verdadero: eliminará TODOS los registros de la tabla.",
-                        linea=None,
+                        linea=self._line(where),
                         recomendacion="La condición WHERE no filtra registros. Reemplazarla por un filtro real (ej: WHERE id = :id).",
                         puntuacion=100,
                     ))
@@ -60,7 +61,7 @@ class TautologicalWhereRule(BaseRule):
                         codigo=self.code,
                         severidad=Severity.CRITICA,
                         mensaje="UPDATE con WHERE siempre verdadero: modificará TODOS los registros de la tabla.",
-                        linea=None,
+                        linea=self._line(where),
                         recomendacion="La condición WHERE no filtra registros. Reemplazarla por un filtro real (ej: WHERE id = :id).",
                         puntuacion=90,
                     ))

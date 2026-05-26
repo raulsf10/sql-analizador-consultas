@@ -13,6 +13,7 @@ class SelectWithoutAliasJoinRule(BaseRule):
     score = 10
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -26,5 +27,6 @@ class SelectWithoutAliasJoinRule(BaseRule):
                     issues.append(self._issue(
                         message=f"{len(unaliased)} columnas sin alias en SELECT con JOINs: ambigüedad en resultado.",
                         recommendation="Agregar alias descriptivos a columnas en SELECTs con múltiples tablas para evitar ambigüedad.",
+                        node=select,
                     ))
         return issues

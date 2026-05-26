@@ -13,6 +13,7 @@ class InSubqueryRule(BaseRule):
     score = 35
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for in_expr in stmt.find_all(exp.In):
@@ -20,5 +21,6 @@ class InSubqueryRule(BaseRule):
                     issues.append(self._issue(
                         message="IN con subquery detectado: puede ser ineficiente con grandes volúmenes de datos.",
                         recommendation="Reemplazar IN (SELECT ...) con EXISTS o JOIN para mejor rendimiento.",
+                        node=in_expr,
                     ))
         return issues

@@ -19,6 +19,7 @@ class FunctionOnIndexedColumnRule(BaseRule):
     }
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -33,6 +34,7 @@ class FunctionOnIndexedColumnRule(BaseRule):
                             issues.append(self._issue(
                                 message=f"Función '{func_name}' aplicada a columna en WHERE: deshabilita uso de índices.",
                                 recommendation="Mover la función al lado del valor literal o crear un índice basado en función.",
+                                node=func,
                             ))
                             break
         return issues

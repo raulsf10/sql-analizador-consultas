@@ -13,6 +13,7 @@ class CteReuseRule(BaseRule):
     score = 15
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             with_clause = stmt.find(exp.With)
@@ -31,10 +32,12 @@ class CteReuseRule(BaseRule):
                     issues.append(self._issue(
                         message=f"CTE '{cte.alias}' definido pero nunca referenciado: código muerto.",
                         recommendation="Eliminar CTEs no utilizados para mejorar legibilidad y rendimiento.",
+                        node=cte,
                     ))
                 elif count > 2:
                     issues.append(self._issue(
                         message=f"CTE '{cte.alias}' referenciado {count} veces: puede causar re-evaluación en algunos motores.",
                         recommendation="Considerar tablas temporales o materialización explícita si el CTE es costoso.",
+                        node=cte,
                     ))
         return issues

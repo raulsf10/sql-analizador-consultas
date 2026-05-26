@@ -178,6 +178,7 @@ class CriticalTableRule(BaseRule):
     score = 80
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             if not isinstance(stmt, _WRITE_STATEMENT_TYPES):
@@ -193,6 +194,7 @@ class CriticalTableRule(BaseRule):
                             f"La tabla '{display}' está catalogada como crítica. "
                             "Verifique que el script cuenta con aprobación explícita antes de ejecutarse en producción."
                         ),
+                        node=stmt,
                     ))
         return issues
 

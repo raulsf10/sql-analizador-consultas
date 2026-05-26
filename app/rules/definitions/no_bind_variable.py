@@ -21,6 +21,7 @@ class NoBindVariableRule(BaseRule):
     score = 10
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for where in stmt.find_all(exp.Where):
@@ -50,6 +51,7 @@ class NoBindVariableRule(BaseRule):
                             "Ejemplo: WHERE columna = :v_columna  "
                             "Esto permite a Oracle reutilizar el plan de ejecución y reduce el hard parsing."
                         ),
+                        node=where,
                     ))
         return issues
 

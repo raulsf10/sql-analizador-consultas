@@ -20,6 +20,7 @@ class ExcessiveOrRule(BaseRule):
         return 0
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for where in stmt.find_all(exp.Where):
@@ -28,5 +29,6 @@ class ExcessiveOrRule(BaseRule):
                     issues.append(self._issue(
                         message=f"Exceso de condiciones OR ({or_count}) en WHERE: puede impedir uso eficiente de índices.",
                         recommendation="Reemplazar múltiples OR con IN (...) o usar UNION ALL de queries más simples.",
+                        node=where,
                     ))
         return issues

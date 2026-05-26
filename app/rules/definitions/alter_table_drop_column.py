@@ -13,6 +13,7 @@ class AlterTableDropColumnRule(BaseRule):
     score = 90
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for alter in stmt.find_all(exp.AlterTable):
@@ -22,6 +23,7 @@ class AlterTableDropColumnRule(BaseRule):
                         issues.append(self._issue(
                             message="ALTER TABLE DROP COLUMN detectado: elimina datos de la columna de forma permanente.",
                             recommendation="Verificar que ninguna aplicación o proceso depende de esta columna antes de eliminarla.",
+                            node=alter,
                         ))
                         break
         return issues

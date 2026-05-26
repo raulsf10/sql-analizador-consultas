@@ -13,6 +13,7 @@ class CalculatedColumnFilterRule(BaseRule):
     score = 30
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for where in stmt.find_all(exp.Where):
@@ -22,6 +23,7 @@ class CalculatedColumnFilterRule(BaseRule):
                             issues.append(self._issue(
                                 message="Filtro WHERE sobre expresión aritmética: no puede usar índices de columna.",
                                 recommendation="Mover el cálculo al lado del literal o usar columnas calculadas persistidas/indexadas.",
+                                node=cmp,
                             ))
                             break
         return issues

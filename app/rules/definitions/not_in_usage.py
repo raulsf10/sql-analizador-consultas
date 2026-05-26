@@ -13,6 +13,7 @@ class NotInUsageRule(BaseRule):
     score = 20
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for node in stmt.find_all(exp.Not):
@@ -20,5 +21,6 @@ class NotInUsageRule(BaseRule):
                     issues.append(self._issue(
                         message="Uso de NOT IN: puede producir resultados incorrectos si la lista contiene valores NULL.",
                         recommendation="Reemplazar NOT IN con NOT EXISTS o LEFT JOIN ... WHERE key IS NULL.",
+                        node=node,
                     ))
         return issues

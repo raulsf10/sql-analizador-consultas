@@ -13,11 +13,14 @@ class TruncateTableRule(BaseRule):
     score = 100
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
-            if stmt.find(exp.TruncateTable):
+            trunc = stmt.find(exp.TruncateTable)
+            if trunc:
                 issues.append(self._issue(
                     message="TRUNCATE TABLE detectado: elimina TODOS los registros y puede no ser reversible.",
                     recommendation="Verificar que existe un respaldo reciente. Considerar DELETE con WHERE en ambientes productivos.",
+                    node=trunc,
                 ))
         return issues

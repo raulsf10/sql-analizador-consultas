@@ -13,6 +13,7 @@ class MissingTableAliasRule(BaseRule):
     score = 10
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
+        self._set_script(raw_script)
         issues = []
         for stmt in statements:
             for select in stmt.find_all(exp.Select):
@@ -29,5 +30,6 @@ class MissingTableAliasRule(BaseRule):
                     issues.append(self._issue(
                         message=f"Tablas sin alias en consulta con JOIN: {', '.join(tables_without_alias[:3])}.",
                         recommendation="Agregar alias cortos a todas las tablas en consultas con JOINs. Ejemplo: FROM clientes c JOIN pedidos p ON c.id = p.cliente_id",
+                        node=select,
                     ))
         return issues
