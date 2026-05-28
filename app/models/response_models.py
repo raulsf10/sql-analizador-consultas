@@ -22,6 +22,7 @@ class Issue(BaseModel):
     severidad: Severity = Field(..., description="Nivel de severidad del problema")
     mensaje: str = Field(..., description="Descripción del problema encontrado")
     linea: Optional[int] = Field(None, description="Línea donde se encontró el problema")
+    extracto: Optional[str] = Field(None, description="Fragmento del script alrededor de la línea del problema")
     recomendacion: str = Field(..., description="Corrección sugerida")
     puntuacion: int = Field(..., description="Puntos de riesgo aportados por esta regla")
 

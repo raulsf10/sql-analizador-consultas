@@ -6,6 +6,8 @@ from app.analyzers.sql_analyzer import SQLAnalyzer
 from app.services.risk_scoring_service import RiskScoringService
 from app.core.logging_config import get_logger
 
+_SEVERITY_RANK = {"CRITICA": 4, "ALTA": 3, "MEDIA": 2, "BAJA": 1}
+
 logger = get_logger(__name__)
 
 
@@ -35,6 +37,17 @@ class AnalysisService:
                 issues.extend(found)
             except Exception as exc:
                 logger.warning(f"Rule '{rule.code}' raised an exception: {exc}", exc_info=True)
+
+        seen: set[tuple] = set()
+        unique: list[Issue] = []
+        for issue in issues:
+            key = (issue.codigo, issue.mensaje, issue.linea)
+            if key not in seen:
+                seen.add(key)
+                unique.append(issue)
+        issues = unique
+
+        issues.sort(key=lambda i: (-_SEVERITY_RANK.get(i.severidad.value, 0), -i.puntuacion))
 
         score = self._scoring.calculate_score(issues)
         criticality = self._scoring.get_criticality(score)

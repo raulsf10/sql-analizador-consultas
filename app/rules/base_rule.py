@@ -29,11 +29,13 @@ class BaseRule(ABC):
     ) -> Issue:
         if line is None and node is not None:
             line = self._line(node)
+        extracto = self._extract(self._current_raw_script, line) if line else None
         return Issue(
             codigo=self.code,
             severidad=self.severity,
             mensaje=message,
             linea=line,
+            extracto=extracto,
             recomendacion=recommendation,
             puntuacion=self.score,
         )
@@ -44,6 +46,12 @@ class BaseRule(ABC):
         val = node.meta.get("line")
         if val is not None:
             return int(val)
+        # SQLGlot 25.x stores the character offset of each node in meta['start'].
+        # Each node instance has a unique offset, so identical SQL at different
+        # positions correctly resolves to different line numbers.
+        start = node.meta.get("start")
+        if start is not None and self._current_raw_script:
+            return self._current_raw_script[:start].count('\n') + 1
         if self._current_raw_script:
             return self._search_line(node, self._current_raw_script)
         return None
@@ -91,6 +99,19 @@ class BaseRule(ABC):
                 break
 
         return None
+
+    @staticmethod
+    def _extract(raw_script: str, line: Optional[int], context: int = 1) -> Optional[str]:
+        if not raw_script or not line:
+            return None
+        lines = raw_script.splitlines()
+        start = max(0, line - 1 - context)
+        end = min(len(lines), line + context)
+        result = []
+        for i, text in enumerate(lines[start:end], start=start + 1):
+            marker = ">>" if i == line else "  "
+            result.append(f"{marker}{i:3}: {text}")
+        return "\n".join(result)
 
     @staticmethod
     def _keyword_line(raw_script: str, keyword: str) -> Optional[int]:

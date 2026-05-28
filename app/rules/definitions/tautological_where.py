@@ -46,22 +46,26 @@ class TautologicalWhereRule(BaseRule):
             if isinstance(stmt, exp.Delete):
                 where = stmt.find(exp.Where)
                 if where and _is_tautological(where.this):
+                    line = self._line(where)
                     issues.append(Issue(
                         codigo=self.code,
                         severidad=Severity.CRITICA,
                         mensaje="DELETE con WHERE siempre verdadero: eliminará TODOS los registros de la tabla.",
-                        linea=self._line(where),
+                        linea=line,
+                        extracto=self._extract(raw_script, line),
                         recomendacion="La condición WHERE no filtra registros. Reemplazarla por un filtro real (ej: WHERE id = :id).",
                         puntuacion=100,
                     ))
             elif isinstance(stmt, exp.Update):
                 where = stmt.find(exp.Where)
                 if where and _is_tautological(where.this):
+                    line = self._line(where)
                     issues.append(Issue(
                         codigo=self.code,
                         severidad=Severity.CRITICA,
                         mensaje="UPDATE con WHERE siempre verdadero: modificará TODOS los registros de la tabla.",
-                        linea=self._line(where),
+                        linea=line,
+                        extracto=self._extract(raw_script, line),
                         recomendacion="La condición WHERE no filtra registros. Reemplazarla por un filtro real (ej: WHERE id = :id).",
                         puntuacion=90,
                     ))

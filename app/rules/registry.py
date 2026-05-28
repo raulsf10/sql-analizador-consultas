@@ -27,6 +27,7 @@ from app.rules.definitions.subquery_instead_of_join import SubqueryInsteadOfJoin
 from app.rules.definitions.critical_table import CriticalTableRule
 from app.rules.definitions.tautological_where import TautologicalWhereRule
 from app.rules.definitions.no_bind_variable import NoBindVariableRule
+from app.rules.definitions.duplicate_expression import DuplicateExpressionRule
 
 
 def build_rule_manager() -> RuleManager:
@@ -60,6 +61,7 @@ def build_rule_manager() -> RuleManager:
         CriticalTableRule(),
         TautologicalWhereRule(),
         NoBindVariableRule(),
+        DuplicateExpressionRule(),
     ]
     for rule in rules:
         manager.register(rule)

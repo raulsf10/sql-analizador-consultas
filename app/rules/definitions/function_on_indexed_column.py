@@ -12,10 +12,18 @@ class FunctionOnIndexedColumnRule(BaseRule):
     severity = Severity.ALTA
     score = 45
 
+    # SQLGlot class names (lowercase) for functions that disable index usage.
+    # Includes both direct class names and mapped names (e.g. TO_DATE → StrToDate).
     _COMMON_FUNCS = {
-        "upper", "lower", "ltrim", "rtrim", "trim", "convert", "cast",
-        "to_char", "to_date", "substr", "substring", "year", "month", "day",
-        "datepart", "isnull", "nvl", "coalesce", "len", "length",
+        # Class names that match the SQL function name directly
+        "upper", "lower", "trim", "length", "coalesce", "cast",
+        "year", "month", "day",
+        # SQLGlot internal class names for Oracle/SQL Server functions
+        "strtodate",    # TO_DATE
+        "tochar",       # TO_CHAR
+        # Anonymous functions — matched via func.name
+        "ltrim", "rtrim", "substr", "substring",
+        "isnull", "nvl", "convert", "datepart", "len",
     }
 
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
@@ -27,14 +35,22 @@ class FunctionOnIndexedColumnRule(BaseRule):
                 if not where:
                     continue
                 for func in where.find_all(exp.Func):
-                    func_name = type(func).__name__.lower()
-                    # Check if the function directly wraps a column
+                    cls_name = type(func).__name__.lower()
+                    # Anonymous keeps the original SQL name in func.name
+                    func_name = func.name.lower() if cls_name == "anonymous" else cls_name
+                    if func_name not in self._COMMON_FUNCS:
+                        continue
+                    col_found = False
                     for arg in func.args.values():
-                        if isinstance(arg, exp.Column):
-                            issues.append(self._issue(
-                                message=f"Función '{func_name}' aplicada a columna en WHERE: deshabilita uso de índices.",
-                                recommendation="Mover la función al lado del valor literal o crear un índice basado en función.",
-                                node=func,
-                            ))
+                        targets = arg if isinstance(arg, list) else [arg]
+                        if any(isinstance(t, exp.Column) for t in targets):
+                            col_found = True
                             break
+                    if col_found:
+                        display = func.sql(dialect="oracle").split("(")[0].strip()
+                        issues.append(self._issue(
+                            message=f"Función '{display}' aplicada a columna en WHERE: deshabilita uso de índices.",
+                            recommendation="Mover la función al lado del valor literal o crear un índice basado en función.",
+                            node=func,
+                        ))
         return issues
