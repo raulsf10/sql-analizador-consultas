@@ -11,6 +11,7 @@ logger = get_logger(__name__)
     "/analyze",
     response_model=AnalyzeResponse,
     tags=["Analysis"],
+    summary=" ",
 )
 async def analyze_sql(payload: AnalyzeRequest, request: Request) -> AnalyzeResponse:
     analysis_service = request.app.state.analysis_service

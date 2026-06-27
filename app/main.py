@@ -18,6 +18,8 @@ from app.rules.registry import build_rule_manager
 from app.analyzers.sql_analyzer import SQLAnalyzer
 from app.services.risk_scoring_service import RiskScoringService
 from app.services.analysis_service import AnalysisService
+from app.db.database import init_db
+from app.db import catalog_repository
 
 setup_logging(log_level=settings.log_level, log_file=settings.log_file)
 logger = get_logger(__name__)
@@ -26,6 +28,16 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info(f"Starting {settings.app_name} v{settings.app_version} [{settings.app_env}]")
+
+    init_db(settings.database_url)
+    catalog_repository.load_catalog(settings.database_url)
+    logger.info(
+        "Catalog loaded",
+        extra={
+            "tablas_criticas": len(catalog_repository.get_critical_tables()),
+            "wf_criticos": len(catalog_repository.get_critical_wfs()),
+        },
+    )
 
     rule_manager = build_rule_manager()
     sql_analyzer = SQLAnalyzer()

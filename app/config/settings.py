@@ -13,8 +13,9 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_file: Optional[str] = Field(default="logs/sql-analizador-consultas.log", alias="LOG_FILE")
     approval_threshold: int = Field(default=60, alias="APPROVAL_THRESHOLD")
+    database_url: str = Field(default="postgresql://user:password@localhost:5432/dbname", alias="DATABASE_URL")
 
-    model_config = {"env_file": ".env", "populate_by_name": True}
+    model_config = {"env_file": ".env", "env_file_encoding": "latin-1", "populate_by_name": True}
 
 
 settings = Settings()

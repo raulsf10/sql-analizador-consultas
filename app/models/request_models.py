@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 _DIALECT_MAP: dict[str, str] = {
+    # API / manual values
     "sqlserver": "tsql",
     "sql_server": "tsql",
     "mssql": "tsql",
@@ -11,6 +12,10 @@ _DIALECT_MAP: dict[str, str] = {
     "postgresql": "postgres",
     "postgres": "postgres",
     "mysql": "mysql",
+    # PowerMart DATABASETYPE values (auto-detected from XML)
+    "microsoft sql server": "tsql",
+    "sql server": "tsql",
+    "ms sql server": "tsql",
 }
 
 

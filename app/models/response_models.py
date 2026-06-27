@@ -67,5 +67,7 @@ class XmlAnalyzeResponse(BaseModel):
     puntuacionMaxima: int = Field(..., ge=0, le=100, description="Puntuación más alta entre todas las consultas")
     consultasCriticas: int = Field(..., description="Número de consultas que requieren aprobación")
     requiereAprobacion: bool = Field(..., description="True si al menos una consulta requiere aprobación")
+    rutaCritica: bool = Field(default=False, description="True si la ruta proporcionada coincide con un workflow catalogado como crítico")
+    rutaCoincidencia: Optional[str] = Field(default=None, description="Nombre del workflow crítico detectado en la ruta")
     consultas: List[ConsultaXmlResult]
     tiempoTotalMs: float
