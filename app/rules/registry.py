@@ -28,6 +28,7 @@ from app.rules.definitions.critical_table import CriticalTableRule
 from app.rules.definitions.tautological_where import TautologicalWhereRule
 from app.rules.definitions.no_bind_variable import NoBindVariableRule
 from app.rules.definitions.duplicate_expression import DuplicateExpressionRule
+from app.rules.definitions.parallel_hint import ParallelHintRule
 
 
 def build_rule_manager() -> RuleManager:
@@ -62,6 +63,7 @@ def build_rule_manager() -> RuleManager:
         TautologicalWhereRule(),
         NoBindVariableRule(),
         DuplicateExpressionRule(),
+        ParallelHintRule(),
     ]
     for rule in rules:
         manager.register(rule)

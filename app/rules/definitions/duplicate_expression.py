@@ -5,10 +5,11 @@ from sqlglot import exp
 from app.rules.base_rule import BaseRule
 from app.models.response_models import Issue, Severity
 
+_SUBQUERY_MIN_REPETITIONS = 2   # 2+ es suficiente para ser un problema
 _MIN_REPETITIONS = 3
+_SUBQUERY_MIN_LEN = 20
 _CASE_MIN_LEN = 20
 _EXPR_MIN_LEN = 35
-# Structural similarity: min chars after normalization AND min members in group
 _STRUCT_MIN_LEN = 50
 _STRUCT_MIN_REPETITIONS = 3
 
@@ -17,7 +18,6 @@ _NUMBER_RE = re.compile(r"(?<![A-Za-z_0-9.])\d+(?:\.\d+)?(?![A-Za-z_0-9])")
 
 
 def _normalize(sql: str) -> str:
-    """Replace all literal values with ? to expose structural template."""
     s = _LITERAL_RE.sub("'?'", sql)
     s = _NUMBER_RE.sub("?", s)
     return s
@@ -25,10 +25,12 @@ def _normalize(sql: str) -> str:
 
 class DuplicateExpressionRule(BaseRule):
     code = "EXPRESION_REPETIDA"
-    name = "Expresión compleja duplicada"
+    name = "Subconsulta o expresión duplicada"
     description = (
-        "Detecta bloques CASE idénticos o estructuralmente similares repetidos 3 o más veces. "
-        "La repetición indica lógica que debería extraerse a una función SQL o CTE."
+        "Detecta subconsultas escalares idénticas repetidas 2 o más veces, "
+        "bloques CASE idénticos o estructuralmente similares repetidos 3 o más veces, "
+        "y expresiones aritméticas idénticas repetidas 3 o más veces. "
+        "La repetición fuerza al motor a ejecutar la misma lógica múltiples veces."
     )
     severity = Severity.BAJA
     score = 15
@@ -36,8 +38,39 @@ class DuplicateExpressionRule(BaseRule):
     def analyze(self, statements: List[sqlglot.Expression], raw_script: str) -> List[Issue]:
         self._set_script(raw_script)
         issues = []
+        reported_sqls: set[str] = set()
 
-        # ── Pass 1: exact duplicates (accumulate across all statements) ──────
+        # ── Pass 1: subconsultas escalares idénticas (threshold: 2+) ─────────
+        subquery_counts: dict[str, int] = {}
+        subquery_first: dict[str, exp.Expression] = {}
+
+        for stmt in statements:
+            for node in stmt.find_all(exp.Subquery):
+                try:
+                    sql = node.sql(dialect="oracle").strip()
+                except Exception:
+                    continue
+                if len(sql) < _SUBQUERY_MIN_LEN:
+                    continue
+                if sql not in subquery_first:
+                    subquery_first[sql] = node
+                subquery_counts[sql] = subquery_counts.get(sql, 0) + 1
+
+        for sql, count in sorted(subquery_counts.items(), key=lambda x: -len(x[0])):
+            if count < _SUBQUERY_MIN_REPETITIONS:
+                continue
+            reported_sqls.add(sql)
+            display = sql[:120] + "..." if len(sql) > 120 else sql
+            issues.append(self._issue(
+                message=f"Subconsulta idéntica ejecutada {count} veces: {display}",
+                recommendation=(
+                    "Extraer la subconsulta a un CTE (WITH nombre AS (...)) para que el motor "
+                    "la calcule una sola vez. Cada repetición fuerza una ejecución independiente."
+                ),
+                node=subquery_first[sql],
+            ))
+
+        # ── Pass 2: expresiones exactas — CASE y aritmética (threshold: 3+) ──
         exact_counts: dict[str, int] = {}
         exact_first: dict[str, exp.Expression] = {}
 
@@ -47,7 +80,7 @@ class DuplicateExpressionRule(BaseRule):
                     sql = node.sql(dialect="oracle").strip()
                 except Exception:
                     continue
-                if len(sql) < _CASE_MIN_LEN:
+                if len(sql) < _CASE_MIN_LEN or sql in reported_sqls:
                     continue
                 if sql not in exact_first:
                     exact_first[sql] = node
@@ -58,7 +91,7 @@ class DuplicateExpressionRule(BaseRule):
                     sql = node.sql(dialect="oracle").strip()
                 except Exception:
                     continue
-                if len(sql) < _EXPR_MIN_LEN:
+                if len(sql) < _EXPR_MIN_LEN or sql in reported_sqls:
                     continue
                 if sql not in exact_first:
                     exact_first[sql] = node
@@ -69,6 +102,7 @@ class DuplicateExpressionRule(BaseRule):
             if count < _MIN_REPETITIONS:
                 continue
             reported_exact.add(sql)
+            reported_sqls.add(sql)
             display = sql[:80] + "..." if len(sql) > 80 else sql
             issues.append(self._issue(
                 message=f"Expresión idéntica repetida {count} veces: {display}",
@@ -79,7 +113,7 @@ class DuplicateExpressionRule(BaseRule):
                 node=exact_first[sql],
             ))
 
-        # ── Pass 2: structural similarity (accumulate across all statements) ─
+        # ── Pass 3: similitud estructural — CASE (threshold: 3+) ─────────────
         struct_counts: dict[str, int] = {}
         struct_first: dict[str, exp.Expression] = {}
         struct_example: dict[str, str] = {}
@@ -90,9 +124,7 @@ class DuplicateExpressionRule(BaseRule):
                     sql = node.sql(dialect="oracle").strip()
                 except Exception:
                     continue
-                if len(sql) < _STRUCT_MIN_LEN:
-                    continue
-                if sql in reported_exact:
+                if len(sql) < _STRUCT_MIN_LEN or sql in reported_sqls:
                     continue
                 norm = _normalize(sql)
                 if norm not in struct_first:
